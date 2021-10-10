@@ -82,7 +82,7 @@ public class TopkCommonWords {
             Iterator<String> iter = result.iterator();
             while (iter.hasNext()) {
                 if (!othHash.contains(iter.next())) {
-                    iter.remove;
+                    iter.remove();
                 }
             }
             resultList = new ArrayList<String> (result);
