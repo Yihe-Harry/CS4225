@@ -26,14 +26,20 @@ public class TopkCommonWords {
 
         @Override
         protected void setup(Context context) throws IOException, InterruptedException {
-            String filefilterdata = "";
-            BufferedReader br = new BufferedReader(new FileReader(filefilterdata));
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] strings = line.split("\t");
-                filter.add(strings[0]);
+            String filename = null;
+            FileSplit fs = (FileSplit) context.getInputSplit();
+            filename = fs.getPath().getName();
+
+            if (filename.equals("stopwords.txt")) {
+                System.out.println("file path of stopwords" + fs.getPath().toString().split(":")[1]);
+                BufferedReader br = new BufferedReader(new FileReader(fs.getPath().toString().split(":")[1]));
+                String line;
+                while ((line = br.readLine()) != null) {
+                    String[] strings = line.split("\t");
+                    filter.add(strings[0]);
+                }
+                br.close();            
             }
-            br.close();
         }
 
         @Override
@@ -116,4 +122,23 @@ public class TopkCommonWords {
         }
     }
 
+    public static void main(String[] args) throws Exception {
+        Configuration conf = new Configuration();
+        Job job = Job.getInstance(conf, "word count");
+        conf.setInt("top.n", 20);
+
+        job.setJarByClass(TopkCommonWords.class);
+        job.setMapperClass(wordMapper.class);
+        job.setCombinerClass(wordReducer.class);
+        job.setReducerClass(wordReducer.class);
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(IntWritable.class);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(IntWritable.class);
+        FileInputFormat.addInputPath(job, new Path(args[0]));
+        FileInputFormat.addInputPath(job, new Path(args[1]));
+        FileInputFormat.addInputPath(job, new Path(args[2]));
+        FileOutputFormat.setOutputPath(job, new Path(args[3]));
+        System.exit(job.waitForCompletion(true) ? 0 : 1);
+    }
 }
