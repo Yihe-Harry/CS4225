@@ -1,5 +1,3 @@
-package WordCount;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
@@ -20,7 +18,7 @@ import java.util.*;
  * @author: 龙辉辉
  * @create: 2021-09-21 21:17
  */
-public class WordCount {
+public class TopkCommonWords {
 
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
@@ -38,10 +36,10 @@ public class WordCount {
         job.setReducerClass(wordReducer.class);
         job.setOutputKeyClass(IntWritable.class);
         job.setOutputValueClass(Text.class);
-        FileInputFormat.addInputPath(job, new Path("/Users/qishi/Desktop/Mapreducer/inputData/task1-input1.txt"));
-        FileInputFormat.addInputPath(job, new Path("/Users/qishi/Desktop/Mapreducer/inputData/task1-input2.txt"));
-        FileInputFormat.addInputPath(job, new Path("/Users/qishi/Desktop/Mapreducer/inputData/stopwords.txt"));
-        FileOutputFormat.setOutputPath(job, new Path("/Users/qishi/Desktop/Mapreducer/output/"));
+        FileInputFormat.addInputPath(job, new Path(args[0]));
+        FileInputFormat.addInputPath(job, new Path(args[1]));
+        FileInputFormat.addInputPath(job, new Path(args[2]));
+        FileOutputFormat.setOutputPath(job, new Path(args[3]));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 
@@ -151,6 +149,38 @@ public class WordCount {
                 //取到排名前n条
                 if(i==top) return;
             }
+        }
+    }
+
+    public class Word  implements Comparable<Word>{
+        private String page;
+        private int count;
+    
+        public void set(String page, int count) {
+            this.page = page;
+            this.count = count;
+        }
+    
+        public String getPage() {
+            return page;
+        }
+    
+        public void setPage(String page) {
+            this.page = page;
+        }
+    
+        public int getCount() {
+            return count;
+        }
+    
+        public void setCount(int count) {
+            this.count = count;
+        }
+    
+        public int compareTo(Word o) {
+            return o.getCount()-this.count==0
+                    ?this.page.compareTo(o.getPage())
+                    :o.getCount()-this.count;
         }
     }
 }
