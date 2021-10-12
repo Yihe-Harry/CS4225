@@ -48,9 +48,11 @@ public class TopkCommonWords {
 
     public static class wordMapper extends Mapper<Object, Text, Text, IntWritable> {
         public static Text word = new Text();
-        public static List<String> filter = new ArrayList<String>();
+        public static Set<String> filter = new HashSet<String>();
         public static List<String> arraylist = new LinkedList<String>();
         public static List<String> arraylist2 = new LinkedList<>();
+        public static Set<String> file1words = new HashSet<String>();
+        public static Set<String> file2words = new HashSet<String>();
 
         public static int count = 0;
 
@@ -94,6 +96,7 @@ public class TopkCommonWords {
                     String nextToken = itr.nextToken();
                     if (!filter.contains(nextToken)) {
                         arraylist.add(nextToken);
+                        file1words.add(nextToken);
                     }
                 }
             } else if (filename.equals("task1-input2.txt")) {
@@ -107,6 +110,7 @@ public class TopkCommonWords {
                     String nextToken = itr.nextToken();
                     if (!filter.contains(nextToken)) {
                         arraylist2.add(nextToken);
+                        file2words.add(nextToken);
                     }
                 }
             }
@@ -114,26 +118,41 @@ public class TopkCommonWords {
 
         @Override
         protected void cleanup(Context context) throws IOException, InterruptedException {
-            List<String> list = receiveCollectionList(arraylist, arraylist2);
-            for (String s : arraylist) {
-                System.out.println(s);
-            }
+            List<String> list = receiveCollectionList(arraylist, arraylist2, file1words, file2words);
+            // for (String s : arraylist) {
+            //     System.out.println(s);
+            // }
             for (String s : list) {
                 context.write(new Text(s), new IntWritable(1));
             }
         }
 
-        public static List<String> receiveCollectionList(List<String> firstArrayList, List<String> secondArrayList) {
+        public static List<String> receiveCollectionList(List<String> firstArrayList, List<String> secondArrayList, Set<String> set1, Set<String> set2) {
+
+            Set<String> commonWords = new HashSet<String>();
+            commonWords.addAll(set1);
+            commonWords.retainAll(set2);
+
             List<String> resultList = new ArrayList<String>();
-            LinkedList<String> result = new LinkedList<String>(firstArrayList);// 大集合用linkedlist
-            HashSet<String> othHash = new HashSet<String>(secondArrayList);// 小集合用hashset
-            Iterator<String> iter = result.iterator();// 采用Iterator迭代器进行数据的操作
-            while (iter.hasNext()) {
-                if (!othHash.contains(iter.next())) {
-                    iter.remove();
+            // LinkedList<String> result = new LinkedList<String>(firstArrayList);// 大集合用linkedlist
+            // HashSet<String> othHash = new HashSet<String>(secondArrayList);// 小集合用hashset
+            // Iterator<String> iter = result.iterator();// 采用Iterator迭代器进行数据的操作
+            // while (iter.hasNext()) {
+            //     if (!othHash.contains(iter.next())) {
+            //         iter.remove();
+            //     }
+            // }
+            // resultList = new ArrayList<String>(result);
+            for (String s : firstArrayList) {
+                if (commonWords.contains(s)) {
+                    resultList.add(s);
                 }
             }
-            resultList = new ArrayList<String>(result);
+            for (String s : secondArrayList) {
+                if (commonWords.contains(s)) {
+                    resultList.add(s);
+                }
+            }
             return resultList;
         }
     }
