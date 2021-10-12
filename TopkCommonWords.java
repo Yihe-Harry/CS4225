@@ -27,7 +27,7 @@ public class TopkCommonWords {
         conf.setInt("top.n", 20);
         //2.main方法传参数
         // conf.setInt("top.n",Integer.parseInt(args[0]));
-        job.setJarByClass(WordCount.class);
+        job.setJarByClass(TopkCommonWords.class);
         job.setNumReduceTasks(1);
         job.setMapperClass(wordMapper.class);
         job.setMapOutputKeyClass(Text.class);
@@ -132,7 +132,7 @@ public class TopkCommonWords {
                 sum += val.get();
             }
 
-            Word word=new Word();
+            Word word = new Word();
             word.set(key.toString(),sum);
             tm.put(word,null);
         }
@@ -150,37 +150,37 @@ public class TopkCommonWords {
                 if(i==top) return;
             }
         }
-    }
 
-    public class Word  implements Comparable<Word>{
-        private String page;
-        private int count;
-    
-        public void set(String page, int count) {
-            this.page = page;
-            this.count = count;
-        }
-    
-        public String getPage() {
-            return page;
-        }
-    
-        public void setPage(String page) {
-            this.page = page;
-        }
-    
-        public int getCount() {
-            return count;
-        }
-    
-        public void setCount(int count) {
-            this.count = count;
-        }
-    
-        public int compareTo(Word o) {
-            return o.getCount()-this.count==0
-                    ?this.page.compareTo(o.getPage())
-                    :o.getCount()-this.count;
+        public class Word implements Comparable<Word>{
+            private String page;
+            private int count;
+        
+            public void set(String page, int count) {
+                this.page = page;
+                this.count = count;
+            }
+        
+            public String getPage() {
+                return page;
+            }
+        
+            public void setPage(String page) {
+                this.page = page;
+            }
+        
+            public int getCount() {
+                return count;
+            }
+        
+            public void setCount(int count) {
+                this.count = count;
+            }
+        
+            public int compareTo(Word o) {
+                return o.getCount()-this.count==0
+                        ?this.page.compareTo(o.getPage())
+                        :o.getCount()-this.count;
+            }
         }
     }
 }
