@@ -13,9 +13,12 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
+
+import javafx.scene.text.*;
+
 /**
- * @description:
- * @author: 龙辉辉
+ * @description: CS4225 Assignment 1
+ * @author: Wang Yihe A0204772H
  * @create: 2021-09-21 21:17
  */
 public class TopkCommonWords {
@@ -44,6 +47,7 @@ public class TopkCommonWords {
     }
 
     public static class wordMapper extends Mapper<Object, Text, Text, IntWritable> {
+        public static Text word = new Text();
         public static List<String> filter = new ArrayList<String>();
         public static List<String> arraylist = new LinkedList<String>();
         public static List<String> arraylist2 = new LinkedList<>();
@@ -72,7 +76,8 @@ public class TopkCommonWords {
         }
 
         @Override
-        protected void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+        protected void map(Object key, org.w3c.dom.Text value, Context context) throws IOException, InterruptedException {
+            StringTokenizer itr = new StringTokenizer(value.toString());
             String filename = null;
             FileSplit fs = (FileSplit) context.getInputSplit();
             filename = fs.getPath().getName();
@@ -80,22 +85,31 @@ public class TopkCommonWords {
             String[] splits = null;
             if (filename.equals("task1-input1.txt")) {
                 //(space)\t\n\r\f
-                splits = line.split("[\\s\\xA0]+");
-                for (String word : splits) {
-                    if (!filter.contains(word)) {
-                        arraylist.add(word);
+                // splits = line.split("[\\s\\xA0]+");
+                // for (String word : splits) {
+                //     if (!filter.contains(word)) {
+                //         arraylist.add(word);
+                //     }
+                while (itr.hasMoreTokens()) {
+                    String nextToken = itr.nextToken();
+                    if (!filter.contains(nextToken)) {
+                        arraylist.add(nextToken);
                     }
                 }
-
             } else if (filename.equals("task1-input2.txt")) {
-                splits = line.split("[\\s\\xA0]+");
-                for (String word : splits) {
-                    if (!filter.contains(word)) {
-                        arraylist2.add(word);
+                // splits = line.split("[\\s\\xA0]+");
+                // for (String word : splits) {
+                //     if (!filter.contains(word)) {
+                //         arraylist2.add(word);
+                //     }
+                // }
+                while (itr.hasMoreTokens()) {
+                    String nextToken = itr.nextToken();
+                    if (!filter.contains(nextToken)) {
+                        arraylist2.add(nextToken);
                     }
                 }
             }
-
         }
 
         @Override
