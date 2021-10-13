@@ -1,3 +1,5 @@
+package TopkCommonWords;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
@@ -13,12 +15,9 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
-
-import javafx.scene.text.*;
-
 /**
- * @description: CS4225 Assignment 1
- * @author: Wang Yihe A0204772H
+ * @description:
+ * @author: 
  * @create: 2021-09-21 21:17
  */
 public class TopkCommonWords {
@@ -39,6 +38,7 @@ public class TopkCommonWords {
         job.setReducerClass(wordReducer.class);
         job.setOutputKeyClass(IntWritable.class);
         job.setOutputValueClass(Text.class);
+
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileInputFormat.addInputPath(job, new Path(args[1]));
         FileInputFormat.addInputPath(job, new Path(args[2]));
@@ -47,12 +47,9 @@ public class TopkCommonWords {
     }
 
     public static class wordMapper extends Mapper<Object, Text, Text, IntWritable> {
-        public static Text word = new Text();
-        public static Set<String> filter = new HashSet<String>();
+        public static List<String> filter = new ArrayList<String>();
         public static List<String> arraylist = new LinkedList<String>();
         public static List<String> arraylist2 = new LinkedList<>();
-        public static Set<String> file1words = new HashSet<String>();
-        public static Set<String> file2words = new HashSet<String>();
 
         public static int count = 0;
 
@@ -78,8 +75,7 @@ public class TopkCommonWords {
         }
 
         @Override
-        protected void map(Object key, org.w3c.dom.Text value, Context context) throws IOException, InterruptedException {
-            StringTokenizer itr = new StringTokenizer(value.toString());
+        protected void map(Object key, Text value, Context context) throws IOException, InterruptedException {
             String filename = null;
             FileSplit fs = (FileSplit) context.getInputSplit();
             filename = fs.getPath().getName();
@@ -87,87 +83,81 @@ public class TopkCommonWords {
             String[] splits = null;
             if (filename.equals("task1-input1.txt")) {
                 //(space)\t\n\r\f
-                // splits = line.split("[\\s\\xA0]+");
-                // for (String word : splits) {
-                //     if (!filter.contains(word)) {
-                //         arraylist.add(word);
-                //     }
-                while (itr.hasMoreTokens()) {
-                    String nextToken = itr.nextToken();
-                    if (!filter.contains(nextToken)) {
-                        arraylist.add(nextToken);
-                        file1words.add(nextToken);
+                splits = line.split("[\\s\\xA0]+");
+                for (String word : splits) {
+                   // System.out.println("--word"+word);
+                    if (!filter.contains(word)) {
+                        if(word!=" "&&word.length()!=0) {
+                            context.write(new Text(filename + "9" + word), new IntWritable(1));
+                        }
                     }
                 }
+
             } else if (filename.equals("task1-input2.txt")) {
-                // splits = line.split("[\\s\\xA0]+");
-                // for (String word : splits) {
-                //     if (!filter.contains(word)) {
-                //         arraylist2.add(word);
-                //     }
-                // }
-                while (itr.hasMoreTokens()) {
-                    String nextToken = itr.nextToken();
-                    if (!filter.contains(nextToken)) {
-                        arraylist2.add(nextToken);
-                        file2words.add(nextToken);
+                splits = line.split("[\\s\\xA0]+");
+                for (String word2 : splits) {
+                    if (!filter.contains(word2)) {
+                        if(word2!=" " &&word2.length()!=0) {
+                            context.write(new Text(filename + "9" + word2), new IntWritable(1));
+                        }
                     }
                 }
             }
+
         }
 
         @Override
         protected void cleanup(Context context) throws IOException, InterruptedException {
-            List<String> list = receiveCollectionList(arraylist, arraylist2, file1words, file2words);
-            // for (String s : arraylist) {
-            //     System.out.println(s);
-            // }
-            for (String s : list) {
-                context.write(new Text(s), new IntWritable(1));
-            }
+
         }
 
-        public static List<String> receiveCollectionList(List<String> firstArrayList, List<String> secondArrayList, Set<String> set1, Set<String> set2) {
 
-            Set<String> commonWords = new HashSet<String>();
-            commonWords.addAll(set1);
-            commonWords.retainAll(set2);
-
-            List<String> resultList = new ArrayList<String>();
-            // LinkedList<String> result = new LinkedList<String>(firstArrayList);// 大集合用linkedlist
-            // HashSet<String> othHash = new HashSet<String>(secondArrayList);// 小集合用hashset
-            // Iterator<String> iter = result.iterator();// 采用Iterator迭代器进行数据的操作
-            // while (iter.hasNext()) {
-            //     if (!othHash.contains(iter.next())) {
-            //         iter.remove();
-            //     }
-            // }
-            // resultList = new ArrayList<String>(result);
-            for (String s : firstArrayList) {
-                if (commonWords.contains(s)) {
-                    resultList.add(s);
-                }
-            }
-            for (String s : secondArrayList) {
-                if (commonWords.contains(s)) {
-                    resultList.add(s);
-                }
-            }
-            return resultList;
-        }
     }
     public static class wordReducer  extends Reducer<Text, IntWritable,IntWritable,Text> {
         private TreeMap<Word,Object> tm = new TreeMap<Word,Object>();
+        public static Map<String,Integer> hashMap1 = new HashMap<>();
+        public static Map<String,Integer> hashMap2 = new HashMap<>();
         @Override
         protected void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
-            int sum = 0;
-            for (IntWritable val : values) {
-                sum += val.get();
+             int sum=0;
+           String fileName = key.toString().split("9")[0];
+
+            System.out.println(fileName);
+            //System.out.println(word1);
+            if(fileName.equals("task1-input1.txt")){
+                for (IntWritable value:values){
+                    sum=sum+value.get();
+                }
+                System.out.println(sum);
+                String word1 = key.toString().split("9")[1];
+               hashMap1.put(word1,sum);
+            }
+            if(fileName.equals("task1-input2.txt")){
+                for (IntWritable value:values){
+                    sum=sum+value.get();
+                }
+                String word2 = key.toString().split("9")[1];
+                hashMap2.put(word2,sum);
+            }
+            List<Word> words = receiveCollectionList(hashMap1, hashMap2);
+            // Word word = new Word();
+            for(Word s:words){
+                tm.put(s,null);
+            }
+        }
+        public static List<Word> receiveCollectionList(Map<String,Integer> firstArrayList, Map<String,Integer> secondArrayList) {
+            List<Word> resultList=new ArrayList<>();
+            for (Map.Entry<String, Integer> entry : secondArrayList.entrySet()) {
+                firstArrayList.merge(entry.getKey(),entry.getValue(),(oldValue, newValue) ->oldValue>newValue ? newValue :oldValue);
             }
 
-            Word word = new Word();
-            word.set(key.toString(),sum);
-            tm.put(word,null);
+            for (Map.Entry<String, Integer> entry : firstArrayList.entrySet()) {
+                String k = entry.getKey();
+                int v = entry.getValue();
+               Word word = new Word(k, v);
+                resultList.add(word);
+            }
+            return resultList;
         }
 
         @Override
@@ -183,37 +173,6 @@ public class TopkCommonWords {
                 if(i==top) return;
             }
         }
-
-        public class Word implements Comparable<Word>{
-            private String page;
-            private int count;
-        
-            public void set(String page, int count) {
-                this.page = page;
-                this.count = count;
-            }
-        
-            public String getPage() {
-                return page;
-            }
-        
-            public void setPage(String page) {
-                this.page = page;
-            }
-        
-            public int getCount() {
-                return count;
-            }
-        
-            public void setCount(int count) {
-                this.count = count;
-            }
-        
-            public int compareTo(Word o) {
-                return o.getCount()-this.count==0
-                        ?this.page.compareTo(o.getPage())
-                        :o.getCount()-this.count;
-            }
-        }
     }
+
 }
